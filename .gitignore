@@ -18,3 +18,5 @@ CMakeUserPresets.json
 x64
 Debug
 Perceptron.dir
+
+.vscode
