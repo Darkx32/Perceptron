@@ -38,9 +38,10 @@ void Network::train(std::vector<int> input_data, std::vector<int> predict_data, 
         {
             float pred = this->predict(static_cast<float>(input_data[i]));
             float loss = this->mse(static_cast<float>(predict_data[i]), pred);
+            float erro = pred - predict_data[i];
             actual_loss += loss;
 
-            this->backpropragation(static_cast<float>(input_data[i]), static_cast<float>(predict_data[i]), pred);
+            this->backpropragation(static_cast<float>(input_data[i]), erro, pred);
         }
         std::cout << "Epoch: " << e << " loss: " << actual_loss << "\n";
     }
@@ -53,19 +54,22 @@ float Network::predict(const float &x)
     return this->sigmoid(pred);
 }
 
-void Network::backpropragation(const float& x, const float& y, const float& pred)
+void Network::backpropragation(const float& x, const float& erro, const float& pred)
 {
     float Zh = this->hidden.calc(x);
     float Zo = this->output.calc(Zh);
 
-    float Eo = (pred - y) * sigmoid_derivate(Zo);
-    float Eh = Eo * this->output.w * Zh;
+    float Eo = erro * sigmoid_derivate(pred);
+    float dwo = Zh * Eo;
 
-    float dWo = Eo * Zh;
-    float dWh = Eh * x;
+    float Eh = Eo * output.w;
+    float dwh = x * Eh;
 
-    this->hidden.w -= this->learning_rate * dWh;
-    this->output.w -= this->learning_rate * dWo;
+    this->hidden.w -= this->learning_rate * dwh;
+    this->hidden.b -= this->learning_rate * Eh;
+
+    this->output.w -= this->learning_rate * dwo;
+    this->output.b -= this->learning_rate * Eo;
 }
 
 Network::Network(float learning_rate)
