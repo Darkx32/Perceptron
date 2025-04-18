@@ -5,29 +5,25 @@
 
 Layer::Layer(int n_neurons, int n_past_neurons)
 {
-    this->b = this->b = rand() / RAND_MAX * 2.0f - 1.0f;
+    this->b = static_cast<float>(rand() / RAND_MAX * 2.0f - 1.0f);
     this->n_neurons = n_neurons;
     this->n_past_neurons = n_past_neurons;
 
     this->weights.resize(static_cast<size_t>(this->n_neurons * this->n_past_neurons));
     for(int i = 0;i < weights.size();i++)
-        weights[i] = this->b = rand() / RAND_MAX * 2.0f - 1.0f;
+        weights[i] = static_cast<float>(rand() / RAND_MAX * 2.0f - 1.0f);
 }
 
 std::vector<float> Layer::foward(std::vector<float> x)
 {
     std::vector<float> output;
-    output.resize(static_cast<size_t>(this->n_neurons));
+    output.resize(static_cast<size_t>(this->n_neurons), 0.0f);
 
-    for(int n = 0;n < this->n_neurons;n++)
-    {
-        for(int v = 0;v < x.size();v++)
-        {
-            for(int w = 0;w < this->n_past_neurons;w++)
-            {
-                output[n] = this->weights[w] * x[v] + this->b;
-            }
+    for(int i = 0; i < this->n_neurons; i++) {
+        for(int j = 0; j < this->n_past_neurons; j++) {
+            output[i] += this->weights[i * this->n_past_neurons + j] * x[j];
         }
+        output[i] += this->b;
     }
 
     return output;
@@ -53,8 +49,7 @@ float Network::sigmoid(const float& x)
 
 float Network::sigmoid_derivate(const float& x)
 {
-    float s = this->sigmoid(x);
-    return s * (1 - s);
+    return x * (1 - x);
 }
 
 float Network::mse(const float& x, const float& y)
@@ -75,7 +70,7 @@ void Network::train(std::vector<std::pair<float,float>> input_data, std::vector<
             std::vector<float> inputs = {input_data[i].first, input_data[i].second};
             backpropragation(inputs, pred, predict_data[i]);
         }
-        std::cout << "Epoch: " << e << " loss: " << actual_loss << "\n";
+        std::cout << "Epoch: " << e + 1 << " loss: " << actual_loss << "\n";
     }
 }
 
@@ -118,6 +113,6 @@ Network::Network(float learning_rate)
     this->learning_rate = learning_rate;
     srand(static_cast<unsigned>(time(0)));
 
-    hidden = Layer(1);
+    hidden = Layer(1, 2);
     out = Layer(1);
 }
